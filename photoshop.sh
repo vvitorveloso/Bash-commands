@@ -1,0 +1,1 @@
+WINEARCH=win64 WINEPREFIX=/home/ochi/.wineadobe wine /home/ochi/.wineadobe/drive_c/Program\ Files/Adobe/Adobe\ Photoshop\ CC\ 2019/Photoshop.exe

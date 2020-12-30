@@ -1,0 +1,1 @@
+sudo chmod 777 /usr/share/ovmf/x64/OVMF_*
