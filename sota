@@ -1,0 +1,3 @@
+xrandr --output DVI-I-1 --mode 1440x900
+gamemoderun /opt/SOTA/Shroud\ of\ the\ Avatar\ -\ Launcher.x86_64
+xrandr --output DVI-I-1 --mode 1680x1050        

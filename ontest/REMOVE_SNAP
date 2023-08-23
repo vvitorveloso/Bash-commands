@@ -1,0 +1,23 @@
+
+sudo snap remove --purge anbox
+sudo snap remove --purge bare
+sudo snap remove --purge core18
+sudo snap remove --purge core20
+sudo snap remove --purge gnome-3-28-1804
+sudo snap remove --purge gtk-common-themes
+sudo snap remove --purge snapd
+sudo snap remove --purge teams
+
+for i in $(seq 100);do
+sudo snap forget $i
+done
+
+sudo systemctl disable snapd
+
+sudo pacman -Rsc snapd --noconfirm
+
+sudo updatedb
+
+sudo rm -rf $(locate anbox)
+
+sudo pacman -Rsc lxd lxc 

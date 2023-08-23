@@ -1,0 +1,2 @@
+#!/bin/bash
+for i in $(pip list --user | cut -d" " -f1);do pip install $i  -U ;done

@@ -1,0 +1,2 @@
+#!/bin/bash
+scanimage --format png  -d 'pixma:04A9176C_C71EB3' -o $(date +%Y_%m_%d_%s).png --resolution 1200

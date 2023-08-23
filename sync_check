@@ -1,0 +1,2 @@
+#https://unix.stackexchange.com/questions/48235/can-i-watch-the-progress-of-a-sync-operation
+watch -d grep -e Dirty: -e Writeback: /proc/meminfo

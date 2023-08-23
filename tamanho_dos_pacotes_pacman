@@ -1,0 +1,2 @@
+#!/bin/bash
+pacman -Qi | awk '/^Nome/{name=$3} /^Tamanho instalado/{print $4$5, name}' | sort -hr | head -25

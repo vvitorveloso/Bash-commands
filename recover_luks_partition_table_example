@@ -1,0 +1,18 @@
+: 1681129462:0;sudo hexdump -C /dev/sda  | grep LUKS\
+
+: 1681129472:0;sudo hexdump -C /dev/sdg  | grep LUKS\
+
+: 1681129560:0;sudo losetup -o 0x20100000 -r -f /dev/sdg
+: 1681129572:0;losetup -a | grep sda
+: 1681129573:0;losetup -a | grep sd
+: 1681129592:0;sudo cryptsetup luksOpen /dev/loop0 luksrecover
+: 1681129627:0;ls /dev/loop0
+: 1681129633:0;lsblk
+: 1681129649:0;mkdir /tmp/luks
+: 1681129721:0;sudo mount /dev/mapper/luksrecover /tmo/1
+: 1681129723:0;sudo mount /dev/mapper/luksrecover /tmp/1
+: 1681129730:0;mkdir /tmp/1
+: 1681129731:0;sudo mount /dev/mapper/luksrecover /tmp/1
+
+
+sudo mount -o ro,offset=$((512*2048)) /dev/sdg /tmp/2
