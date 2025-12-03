@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# launch-roblox - Launch Roblox in a dedicated X session
+#
+# This script launches Roblox using grapejuice in a separate X session
+# with a custom Xorg configuration.
+
+show_help() {
+    cat << EOF
+launch-roblox - Launch Roblox in a dedicated X session
+
+This script launches Roblox using grapejuice in a separate X session
+with a custom Xorg configuration.
+
+Usage: $(basename "$0") [grapejuice_options]
+
+Dependencies:
+  - grapejuice (Roblox runner for Linux)
+  - xinit
+  - X server
+  - Custom Xorg config: /home/ochi/xorg-game.conf
+
+Configuration:
+  - X session: :5
+  - Virtual terminal: vt5
+  - Xorg config: /home/ochi/xorg-game.conf
+  - Temporary script: /tmp/launch.sh
+
+Examples:
+  $(basename "$0")
+  $(basename "$0") --fullscreen
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+echo 'grapejuice player ' '"'$*'"' > /tmp/launch.sh
+chmod +x /tmp/launch.sh
+xinit /tmp/launch.sh -- :5 -nolisten tcp vt5 -config /home/ochi/xorg-game.conf

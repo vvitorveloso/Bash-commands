@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+# organize-files-into-dirs - Create directories from file names and move files into them
+#
+# For each file in the current directory, creates a directory with the same
+# name as the file (without extension) and moves the file into that directory.
+#
+# Usage: organize-files-into-dirs [directory]
+
+show_help() {
+    cat << EOF
+organize-files-into-dirs - Organize files into individual directories
+
+For each file in the specified directory (or current directory if not specified),
+creates a directory with the same name as the file (without extension) and
+moves the file into that directory.
+
+Usage: $(basename "$0") [DIRECTORY]
+
+Examples:
+  $(basename "$0")                    # Organize files in current directory
+  $(basename "$0") /path/to/files     # Organize files in specific directory
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+TARGET_DIR="${1:-.}"
+
+# Validate directory exists
+if [ ! -d "$TARGET_DIR" ]; then
+    echo "Error: Directory '$TARGET_DIR' does not exist."
+    exit 1
+fi
+
+# Change to target directory temporarily
+cd "$TARGET_DIR" || exit 1
+
+echo "Organizing files in directory: $(pwd)"
+
+# Process each file in the directory
+for file in *; do
+    # Skip if it's a directory
+    if [ -d "$file" ]; then
+        continue
+    fi
+
+    # Skip if it has no extension (no dot)
+    if [[ "$file" != *.* ]]; then
+        continue
+    fi
+
+    # Extract directory name (everything before the last dot)
+    dir=$(echo "$file" | cut -d. -f1)
+
+    # Create directory if it doesn't exist
+    mkdir -p "$dir"
+
+    # Move file to its corresponding directory
+    mv "$file" "$dir"
+
+    echo "Moved $file to $dir/"
+done
+
+echo "File organization complete!"

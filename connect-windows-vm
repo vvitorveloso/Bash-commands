@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# connect-windows-vm - Connect to Windows VM via RDP
+#
+# This script connects to a Windows VM using Wayland FreeRDP client.
+# It retrieves credentials from secret-tool and finds the VM's IP automatically.
+#
+# Usage: connect-windows-vm
+
+show_help() {
+    cat << EOF
+connect-windows-vm - Connect to Windows VM via RDP
+
+This script connects to a Windows VM using Wayland FreeRDP client.
+It retrieves credentials from secret-tool and finds the VM's IP automatically.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - wlfreerdp3: Install using package manager
+  - secret-tool: For credential management
+  - libvirt: For VM IP detection
+  - Running Windows VM on default libvirt network
+
+Configuration:
+  - Store credentials with: secret-tool store --label="..." server RDP
+  - User credentials are expected to be 'user' and '123' (update script as needed)
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Retrieve password from secret-tool
+PASS=$(secret-tool lookup server RDP)
+if [ -z "$PASS" ]; then
+    echo "Error: Could not retrieve password from secret-tool"
+    echo "Set credentials with: secret-tool store --label=\"RDP\" server RDP"
+    exit 1
+fi
+
+# Get VM IP from libvirt DHCP leases
+VMIP=$(sudo virsh net-dhcp-leases default 2>/dev/null | grep -o '192\.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | head -n1)
+if [ -z "$VMIP" ]; then
+    echo "Error: Could not determine VM IP address"
+    echo "Make sure a Windows VM is running on the default libvirt network"
+    exit 1
+fi
+
+echo "Connecting to Windows VM at $VMIP..."
+
+# Connect to the Windows VM via RDP
+wlfreerdp3 +window-drag +aero +home-drive +clipboard /smart-sizing /d:AzureAD /sec:tls /sound:sys:pulse /u:user /p:123 /v:$VMIP:3389
+

@@ -1,0 +1,72 @@
+#!/bin/bash
+#
+# mount-encrypted-backup - Mount encrypted backup using encfs
+#
+# This script mounts an encrypted backup using encfs in reverse mode,
+# allowing access to encrypted files stored in cloud services.
+#
+# Usage: mount-encrypted-backup
+
+show_help() {
+    cat << EOF
+mount-encrypted-backup - Mount encrypted backup using encfs
+
+This script mounts an encrypted backup using encfs in reverse mode,
+allowing access to encrypted files stored in cloud services.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - encfs: Install using 'sudo apt install encfs' or equivalent
+  - Encryption key file at ~/key/cloud.key
+
+Configuration:
+  - The script expects an encryption key at ~/key/cloud.key
+  - Source directory: /home/ochi/Documents
+  - Destination directory: /home/ochi/OneDrive/Documents
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+KEY_FILE="$HOME/key/cloud.key"
+SOURCE_DIR="$HOME/Documents"
+DEST_DIR="$HOME/OneDrive/Documents"
+
+# Check if key file exists
+if [ ! -f "$KEY_FILE" ]; then
+    echo "Error: Key file $KEY_FILE does not exist."
+    echo "Create the key file or update the script with the correct path."
+    exit 1
+fi
+
+# Check if source directory exists
+if [ ! -d "$SOURCE_DIR" ]; then
+    echo "Error: Source directory $SOURCE_DIR does not exist."
+    exit 1
+fi
+
+# Check if destination directory exists
+if [ ! -d "$DEST_DIR" ]; then
+    echo "Error: Destination directory $DEST_DIR does not exist."
+    exit 1
+fi
+
+# Check if encfs is installed
+if ! command -v encfs &> /dev/null; then
+    echo "Error: encfs is not installed."
+    echo "Install with: sudo apt install encfs (or equivalent for your system)"
+    exit 1
+fi
+
+echo "Mounting encrypted backup..."
+encfs --reversewrite --extpass="/bin/cat $KEY_FILE" "$SOURCE_DIR" "$DEST_DIR"
+
+echo "Encrypted backup mounted."

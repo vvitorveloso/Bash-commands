@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+#
+# merge-directories - Move and merge directories, overwriting existing files
+#
+# This script recursively moves all files from a source directory to a
+# destination directory, creating necessary subdirectories and overwriting
+# existing files with the same name.
+#
+# Usage: merge-directories <source_dir> <dest_dir>
+
+import argparse
+import os
+
+def show_help():
+    print(f"""merge-directories - Move and merge directories, overwriting existing files
+
+This script recursively moves all files from a source directory to a
+destination directory, creating necessary subdirectories and overwriting
+existing files with the same name.
+
+Usage: {os.path.basename(__file__)} [OPTIONS] SOURCE_DIR DEST_DIR
+
+Arguments:
+  SOURCE_DIR        Source directory to merge from
+  DEST_DIR          Destination directory to merge into
+
+WARNING: Files in destination with the same name will be overwritten.
+         The source directory will be removed after merging.
+
+Examples:
+  {os.path.basename(__file__)} /path/to/source /path/to/dest
+  {os.path.basename(__file__)} ./folder1 ./main_folder
+""")
+
+def move_merge_dirs(source_root, dest_root):
+    """Move all files from source_root to dest_root, merging directories."""
+    for path, dirs, files in os.walk(source_root, topdown=False):
+        dest_dir = os.path.join(
+            dest_root,
+            os.path.relpath(path, source_root)
+        )
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+        for filename in files:
+            os.rename(
+                os.path.join(path, filename),
+                os.path.join(dest_dir, filename)
+            )
+        for dirname in dirs:
+            os.rmdir(os.path.join(path, dirname))
+    os.rmdir(source_root)
+
+if __name__ == '__main__':
+    if len(os.sys.argv) == 1 or '-h' in os.sys.argv or '--help' in os.sys.argv:
+        show_help()
+        exit(0)
+
+    parser = argparse.ArgumentParser(
+        description='Move merge src into dest. Overwrite existing files.',
+        add_help=False  # Disable automatic help since we handle it manually
+    )
+    parser.add_argument('src_dir', help='Source directory')
+    parser.add_argument('dest_dir', help='Destination directory')
+    args = parser.parse_args()
+
+    # Verify source directory exists
+    if not os.path.isdir(args.src_dir):
+        print(f"Error: Source directory '{args.src_dir}' does not exist.")
+        exit(1)
+
+    # Create destination directory if it doesn't exist
+    if not os.path.exists(args.dest_dir):
+        os.makedirs(args.dest_dir)
+        print(f"Created destination directory: {args.dest_dir}")
+
+    # Confirm with user before proceeding
+    print(f"This will merge '{args.src_dir}' into '{args.dest_dir}'")
+    print("Files with the same name in destination will be overwritten.")
+    response = input("Continue? (y/N): ")
+    if response.lower() not in ['y', 'yes']:
+        print("Operation cancelled.")
+        exit(0)
+
+    move_merge_dirs(args.src_dir, args.dest_dir)
+    print(f"Successfully merged '{args.src_dir}' into '{args.dest_dir}'")

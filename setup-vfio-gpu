@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# setup-vfio-gpu - Set up GPU passthrough with VFIO for virtualization
+#
+# This script configures PCI devices for GPU passthrough in virtualization.
+# It identifies secondary GPUs (non-boot VGA) and sets up driver override for VFIO.
+#
+# Usage: setup-vfio-gpu
+
+show_help() {
+    cat << EOF
+setup-vfio-gpu - Set up GPU passthrough with VFIO for virtualization
+
+This script configures PCI devices for GPU passthrough in virtualization.
+It identifies secondary GPUs (non-boot VGA) and sets up driver override for VFIO.
+
+Usage: $(basename "$0")
+
+WARNING: This script must run with root privileges and is meant for
+         systems configured for GPU passthrough with VFIO.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges
+if [[ $EUID -ne 0 ]]; then
+  echo "This script must run as root to access /sys/devices and load kernel modules"
+  exit 1
+fi
+
+# Check for vfio-pci module
+if ! modinfo vfio-pci > /dev/null 2>&1; then
+    echo "Error: vfio-pci module not available"
+    exit 1
+fi
+
+echo "Setting up VFIO for GPU passthrough..."
+
+for i in $(find /sys/devices/pci* -name boot_vga); do
+    if [ $(cat $i) -eq 0 ]; then
+        GPU=$(dirname $i)
+        AUDIO=$(echo $GPU | sed -e "s/0$/1/")
+        echo "vfio-pci" > $GPU/driver_override
+        echo "Applied VFIO override to GPU: $GPU"
+
+        if [ -d $AUDIO ]; then
+            echo "vfio-pci" > $AUDIO/driver_override
+            echo "Applied VFIO override to audio: $AUDIO"
+        fi
+    fi
+done
+
+# Load the VFIO PCI module
+modprobe -i vfio-pci
+
+echo "VFIO setup complete. GPU(s) configured for passthrough."

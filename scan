@@ -1,2 +1,36 @@
 #!/bin/bash
+#
+# scan - Scan document using a specific scanner
+#
+# This script performs a scan using scanimage with predefined settings.
+
+show_help() {
+    cat << EOF
+scan - Scan document using a specific scanner
+
+This script performs a scan using scanimage with predefined settings.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - scanimage (SANE backend)
+  - A configured scanner (pixma:04A9176C_C71EB3)
+
+Configuration:
+  - Scanner: pixma:04A9176C_C71EB3
+  - Format: PNG
+  - Resolution: 1200 DPI
+  - Output file: timestamped PNG file in current directory
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
 scanimage --format png  -d 'pixma:04A9176C_C71EB3' -o $(date +%Y_%m_%d_%s).png --resolution 1200

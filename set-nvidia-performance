@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# set-nvidia-performance - Set NVIDIA GPU performance level
+#
+# This script sets the performance level of an NVIDIA GPU by writing to
+# the pstate debug interface.
+
+show_help() {
+    cat << EOF
+set-nvidia-performance - Set NVIDIA GPU performance level
+
+This script sets the performance level of an NVIDIA GPU by writing to
+the pstate debug interface.
+
+Usage: sudo $(basename "$0") <level>
+
+Arguments:
+  level    Performance level to set
+           - min: Minimum performance (07)
+           - med: Medium performance (0a)
+           - max: Maximum performance (0f)
+           - ac: AC mode (AC)
+
+Examples:
+  sudo $(basename "$0") min
+  sudo $(basename "$0") max
+
+WARNING: This script requires root privileges and directly manipulates
+         hardware via debugfs. Use with caution as improper values
+         may cause system instability.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before accessing hardware debug interfaces
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to access hardware debug interfaces."
+  exit 1
+fi
+
+sudo cat /sys/kernel/debug/dri/0/pstate
+if [[ "$1" == "min" ]];then
+ echo 07 | sudo tee /sys/kernel/debug/dri/0/pstate
+echo min
+fi
+
+if [[ "$1" == "med" ]];then
+ echo 0a | sudo tee /sys/kernel/debug/dri/0/pstate
+echo med
+fi
+
+if [[ "$1" == "max" ]];then
+ echo 0f | sudo tee /sys/kernel/debug/dri/0/pstate
+echo max
+fi
+
+if [[ "$1" == "ac" ]];then
+ echo AC | sudo tee /sys/kernel/debug/dri/0/pstate
+echo AC
+fi
+

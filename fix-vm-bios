@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# fix-vm-bios - Fix permissions for OVMF BIOS files
+#
+# This script changes permissions of OVMF BIOS files to allow read/write access.
+
+show_help() {
+    cat << EOF
+fix-vm-bios - Fix permissions for OVMF BIOS files
+
+This script changes permissions of OVMF BIOS files to allow read/write access.
+
+Usage: sudo $(basename "$0")
+
+Configuration:
+  - Target: /usr/share/ovmf/x64/OVMF_*
+  - Permissions: 777 (read, write, execute for all)
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges and changes system file permissions.
+         Setting 777 permissions is not recommended for security.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before changing system file permissions
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to modify system file permissions."
+  exit 1
+fi
+
+sudo chmod 777 /usr/share/ovmf/x64/OVMF_*

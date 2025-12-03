@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# cd-dvd-burn - Burn CD/DVD using cdrdao
+#
+# Usage: cd-dvd-burn <toc_file>
+#
+# Examples:
+#   cd-dvd-burn mydisc.toc
+
+show_help() {
+    cat << EOF
+cd-dvd-burn - Burn CD/DVD using cdrdao
+
+This script creates a command to burn CDs/DVDs using cdrdao with
+recommended settings for stability.
+
+Usage: $(basename "$0") <toc_file>
+
+Dependencies:
+  - cdrdao: Install using 'sudo apt install cdrdao' or equivalent
+
+Examples:
+  $(basename "$0") mydisc.toc
+
+Note: This script outputs the burn command. Run with 'eval' to execute:
+  eval \$(basename "$0") mydisc.toc
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+if [ $# -eq 0 ]; then
+    echo "Error: TOC file required."
+    show_help
+    exit 1
+fi
+
+echo "cdrdao write --device /dev/sr0 --driver generic-mmc --buffers 128 --speed 8 '$1'"

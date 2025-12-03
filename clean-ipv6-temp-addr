@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# clean-ipv6-temp-addr - Clean deprecated IPv6 temporary addresses
+#
+# This script removes deprecated IPv6 addresses and disables temporary addresses.
+
+show_help() {
+    cat << EOF
+clean-ipv6-temp-addr - Clean deprecated IPv6 temporary addresses
+
+This script removes deprecated IPv6 addresses and disables temporary addresses
+on all active network interfaces.
+
+Usage: sudo $(basename "$0")
+
+WARNING: This script modifies network configuration and requires root privileges.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before proceeding (except for help)
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to modify network configuration."
+  exit 1
+fi
+
+# Lista de todas as interfaces de rede ativas
+interfaces=$(ip -6 addr | grep -oP '^[0-9]+: \K\w+')
+
+# Loop através de cada interface
+for iface in $interfaces; do
+    echo "Verificando interface: $iface"
+
+    # Lista de todos os endereços IPv6 deprecated nessa interface
+    deprecated_ips=$(ip -6 addr show dev $iface | grep deprecated | awk '{print $2}')
+
+    # Remover cada endereço IPv6 deprecated
+    for ip in $deprecated_ips; do
+        echo "Removendo endereço deprecated: $ip da interface: $iface"
+        sudo ip -6 addr del $ip dev $iface
+    done
+
+    # Remover endereços temporários (opcional, dependendo do seu caso)
+    sudo sysctl -w net.ipv6.conf.$iface.use_tempaddr=0
+done
+
+echo "Todos os endereços IPv6 deprecated foram removidos."

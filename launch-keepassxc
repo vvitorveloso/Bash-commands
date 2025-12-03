@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# launch-keepassxc - Launch KeePassXC with stored credentials
+#
+# This script launches KeePassXC using a password from secret-tool
+# and a keyfile for database authentication.
+
+show_help() {
+    cat << EOF
+launch-keepassxc - Launch KeePassXC with stored credentials
+
+This script launches KeePassXC using a password from secret-tool
+and a keyfile for database authentication.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - KeePassXC
+  - secret-tool (for credential management)
+  - A database file at ~/KP/keepass.kdbx
+  - A keyfile at ~/Documentos/key/keepassnew.key
+
+Configuration:
+  - Database: ~/KP/keepass.kdbx
+  - Keyfile: ~/Documentos/key/keepassnew.key
+  - Credential key: 'keepass' 'login' in secret-tool
+
+Examples:
+  $(basename "$0")
+
+Setup:
+  Store credentials with:
+    secret-tool store --label='KeePassXC' 'keepass' login
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+secret-tool lookup keepass login |\
+ keepassxc --pw-stdin ~/KP/keepass.kdbx \
+--keyfile ~/Documentos/key/keepassnew.key > \
+ /dev/null 2>&1 &
+
+# secret-tool store --label='KeePassXC' 'keepass' login

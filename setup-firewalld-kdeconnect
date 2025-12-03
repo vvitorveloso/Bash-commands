@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# setup-firewalld-kdeconnect - Setup firewall for KDE Connect
+#
+# This script configures firewalld to allow KDE Connect communication
+# by opening the required ports and enabling masquerading.
+
+show_help() {
+    cat << EOF
+setup-firewalld-kdeconnect - Setup firewall for KDE Connect
+
+This script configures firewalld to allow KDE Connect communication
+by opening the required ports and enabling masquerading.
+
+Usage: sudo $(basename "$0")
+
+Dependencies:
+  - firewalld
+  - systemctl (for service management)
+
+Configuration:
+  - Zone: home
+  - Ports: 1714-1764 (TCP and UDP)
+  - Masquerading: enabled
+  - Service: firewalld
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges and modifies system firewall configuration.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before configuring firewall
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to configure the firewall."
+  exit 1
+fi
+
+sudo firewall-cmd --add-masquerade --permanent --zone=home
+sudo firewall-cmd --zone=home --permanent --add-port=1714-1764/tcp
+sudo firewall-cmd --zone=home --permanent --add-port=1714-1764/udp
+sudo systemctl restart firewalld.service 

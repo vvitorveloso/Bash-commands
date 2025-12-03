@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+# killall-wine - Kill all Wine processes
+#
+# This script finds and kills all Wine-related processes including wineserver and .exe processes.
+
+show_help() {
+    cat << EOF
+killall-wine - Kill all Wine processes
+
+This script finds and kills all Wine-related processes including wineserver and .exe processes.
+
+Usage: $(basename "$0")
+
+WARNING: This script uses kill -9 which forcefully terminates processes.
+         Use with caution as it may result in data loss.
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+ps aux | grep -Ei 'wineserver|\.exe$' | grep -v grep | awk '{print $2}' | xargs kill -9

@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# setup-vfio - Setup VFIO for GPU passthrough (hardcoded version)
+#
+# This script unbinds specific PCI devices and sets up VFIO for GPU passthrough.
+# WARNING: This is a hardcoded version that works with specific hardware.
+
+show_help() {
+    cat << EOF
+setup-vfio - Setup VFIO for GPU passthrough (hardcoded version)
+
+This script unbinds specific PCI devices and sets up VFIO for GPU passthrough.
+WARNING: This is a hardcoded version that works with specific hardware.
+
+Usage: sudo $(basename "$0")
+
+WARNING: This script requires root privileges and directly manipulates
+         PCI devices. Ensure you know what you're doing before running.
+         This script is configured for specific hardware (PCI IDs: 10de:0de0, 10de:0bea).
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before proceeding
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to manipulate PCI devices."
+  exit 1
+fi
+
+echo '0000:02:00.1' | tee /sys/bus/pci/devices/0000:02:00.1/driver/unbind
+echo '0000:02:00.0' | tee /sys/bus/pci/devices/0000:02:00.1/driver/unbind
+
+
+modprobe vfio
+modprobe vfio_pci
+
+echo 10de 0de0 | tee /sys/bus/pci/drivers/vfio-pci/new_id
+echo 10de 0bea | tee /sys/bus/pci/drivers/vfio-pci/new_id

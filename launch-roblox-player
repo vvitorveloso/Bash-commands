@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# launch-roblox-player - Launch Roblox player with GPU acceleration
+#
+# This script launches the Roblox player using grapejuice with prime-run
+# for proper GPU acceleration on hybrid graphics systems.
+
+show_help() {
+    cat << EOF
+launch-roblox-player - Launch Roblox player with GPU acceleration
+
+This script launches the Roblox player using grapejuice with prime-run
+for proper GPU acceleration on hybrid graphics systems.
+
+Usage: $(basename "$0") <grapejuice_parameter>
+
+Arguments:
+  grapejuice_parameter    Parameter to pass to grapejuice player
+
+Dependencies:
+  - grapejuice (Roblox runner for Linux)
+  - prime-run (for NVIDIA GPU switching)
+  - Wine (for Roblox Windows application compatibility)
+
+Examples:
+  $(basename "$0")
+  $(basename "$0") --fullscreen
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $(basename "$0") [grapejuice_parameter]"
+    echo "Use -h or --help for more information."
+    exit 1
+fi
+
+prime-run /usr/bin/grapejuice player "$1"
+#WINEPREFIX=/home/ochi/.local/share/grapejuice/wineprefix/ bash /usr/share/dxvk/setup_dxvk.sh install --with-d3d10

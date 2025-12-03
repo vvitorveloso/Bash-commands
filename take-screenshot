@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# take-screenshot - Take a full-screen screenshot
+#
+# This script captures a full-screen screenshot and saves it with a timestamp.
+
+show_help() {
+    cat << EOF
+take-screenshot - Take a full-screen screenshot
+
+This script captures a full-screen screenshot and saves it with a timestamp.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - ImageMagick (import command)
+
+Configuration:
+  - Saves screenshots to: $HOME/Imagens/Screenshots/
+  - File format: PNG with timestamp
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+DATE=`date +%Y-%m-%d\ %H:%M:%S`
+import -window root "$HOME/Imagens/Screenshots/screenshot $DATE.png"
+

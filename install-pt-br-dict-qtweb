@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# install-pt-br-dict-qtweb - Install Brazilian Portuguese dictionary for QtWebEngine
+#
+# This script downloads and installs the Brazilian Portuguese dictionary
+# for QtWebEngine applications.
+
+show_help() {
+    cat << EOF
+install-pt-br-dict-qtweb - Install Brazilian Portuguese dictionary for QtWebEngine
+
+This script downloads and installs the Brazilian Portuguese dictionary
+for QtWebEngine applications.
+
+Usage: sudo $(basename "$0")
+
+Dependencies:
+  - wget (to download the dictionary)
+  - QtWebEngine with dictionary support
+
+Configuration:
+  - Downloads from: https://github.com/cvsuser-chromium/third_party_hunspell_dictionaries/
+  - Installs to: /usr/share/qt6/qtwebengine_dictionaries/
+  - Creates symlink in: /usr/share/qt/qtwebengine_dictionaries/
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges to install system files.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before installing system files
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to install system dictionary files."
+  exit 1
+fi
+
+wget "https://github.com/cvsuser-chromium/third_party_hunspell_dictionaries/raw/master/pt-BR-3-0.bdic" -O pt_BR.bdic
+sudo mv 'pt_BR.bdic' /usr/share/qt6/qtwebengine_dictionaries/
+sudo chown root:root /usr/share/qt6/qtwebengine_dictionaries/pt_BR.bdic
+#sudo rm -rf /usr/share/qt/qtwebengine_dictionaries/pt_BR.bdic
+sudo ln -s "../../qt6/qtwebengine_dictionaries/pt_BR.bdic" "/usr/share/qt/qtwebengine_dictionaries/pt_BR.bdic"
+#ls -lars  /usr/share/qt/qtwebengine_dictionaries/
+
+

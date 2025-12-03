@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# get-module-params - Get kernel module parameters that match a pattern
+#
+# This script searches for parameters of a specific kernel module and filters by pattern.
+
+show_help() {
+    cat << EOF
+get-module-params - Get kernel module parameters that match a pattern
+
+This script searches for parameters of a specific kernel module and filters by pattern.
+
+Usage: sudo $(basename "$0") <module_name> <pattern>
+
+Arguments:
+  module_name    Name of the kernel module to check
+  pattern        Pattern to search for in parameters
+
+Examples:
+  sudo $(basename "$0") nvidia params
+  sudo $(basename "$0") ath10k_core debug
+
+WARNING: This script requires root privileges to access kernel module parameters.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+if [ $# -lt 2 ]; then
+    echo "Usage: $(basename "$0") <module_name> <pattern>"
+    echo "Use -h or --help for more information."
+    exit 1
+fi
+
+# Check for root privileges before accessing kernel parameters
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to access kernel module parameters."
+  exit 1
+fi
+
+sudo grep -H '' /sys/module/$1*/parameters/* | grep "$2"

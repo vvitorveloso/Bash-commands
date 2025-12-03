@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# reattach-vga - Reattach VGA devices by removing and rescanning PCI
+#
+# This script removes specific VGA PCI devices and rescans to reattach them.
+
+show_help() {
+    cat << EOF
+reattach-vga - Reattach VGA devices by removing and rescanning PCI
+
+This script removes specific VGA PCI devices (0000:02:00.1 and 0000:02:00.0)
+and rescans the PCI bus to reattach them.
+
+Usage: sudo $(basename "$0")
+
+Configuration:
+  - PCI devices: 0000:02:00.1, 0000:02:00.0
+  - Wait time: 2 seconds before rescan
+
+WARNING: This script requires root privileges and directly manipulates
+         hardware via PCI interfaces. It is configured for specific
+         hardware and may cause display disruption.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before manipulating PCI devices
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to manipulate PCI devices."
+  exit 1
+fi
+
+echo "1" > /sys/bus/pci/devices/0000:02:00.1/remove
+echo "1" > /sys/bus/pci/devices/0000:02:00.0/remove
+sleep 2
+echo "1" > /sys/bus/pci/rescan

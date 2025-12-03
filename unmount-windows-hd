@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# unmount-windows-hd - Unmount Windows VM disk and disconnect NBD device
+#
+# This script safely unmounts the Windows VM disk and disconnects the NBD device.
+
+show_help() {
+    cat << EOF
+unmount-windows-hd - Unmount Windows VM disk and disconnect NBD device
+
+This script safely unmounts the Windows VM disk and disconnects the NBD device.
+
+Usage: sudo $(basename "$0")
+
+Dependencies:
+  - qemu-nbd (QEMU NBD client)
+  - nbd kernel module
+  - Root access for unmounting
+
+Configuration:
+  - Mount point: /mnt/Win10HD
+  - NBD device: /dev/nbd0
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges and directly manipulates
+         system devices.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before manipulating devices and unmounting
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to manipulate devices and unmount filesystems."
+  exit 1
+fi
+
+umount /mnt/Win10HD
+qemu-nbd --disconnect /dev/nbd0
+rmmod nbd
+

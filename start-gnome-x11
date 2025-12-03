@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# start-gnome-x11 - Start GNOME session using X11 backend
+#
+# This script sets the GDK backend to X11 and starts a GNOME session.
+
+show_help() {
+    cat << EOF
+start-gnome-x11 - Start GNOME session using X11 backend
+
+This script sets the GDK backend to X11 and starts a GNOME session.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - GNOME session
+  - X11 display server
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+export GDK_BACKEND=x11
+exec gnome-session

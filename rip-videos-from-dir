@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# rip-videos-from-dir - Concatenate all videos in a directory into one file
+#
+# This script takes all video files in a specified directory and concatenates
+# them into a single MP4 file using ffmpeg.
+
+show_help() {
+    cat << EOF
+rip-videos-from-dir - Concatenate all videos in a directory into one file
+
+This script takes all video files in a specified directory and concatenates
+them into a single MP4 file using ffmpeg.
+
+Usage: $(basename "$0") <directory>
+
+Arguments:
+  directory    Directory containing video files to concatenate
+
+Dependencies:
+  - ffmpeg
+  - Video files in the specified directory
+
+Examples:
+  $(basename "$0") /path/to/videos
+  $(basename "$0") ./my_videos
+
+Configuration:
+  - Output file: <input_dir>/out.mp4
+  - Temporary file: /tmp/video_file_list.txt
+  - Video codec: libx264
+  - Audio codec: aac
+  - Subtitle codec: copy
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $(basename "$0") <directory>"
+    echo "Use -h or --help for more information."
+    exit 1
+fi
+
+rm /tmp/video_file_list.txt
+rm $NAME/out.mp4
+
+NAME=$(realpath $1)
+
+for i in $(ls $1 );do
+	echo file \'$NAME/$i\' >> /tmp/video_file_list.txt
+done
+
+
+ffmpeg -f concat -safe 0 -i /tmp/video_file_list.txt  -c:v libx264 -c:a aac -threads 4 -speed 1 -map 0 -c:s copy $NAME/out.mp4

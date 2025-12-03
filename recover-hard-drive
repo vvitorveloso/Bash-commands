@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# recover-hard-drive - Recover data from a damaged hard drive using ddrescue
+#
+# This script uses ddrescue to recover data from a potentially damaged drive
+# and then powers off the system.
+
+show_help() {
+    cat << EOF
+recover-hard-drive - Recover data from a damaged hard drive using ddrescue
+
+This script uses ddrescue to recover data from a potentially damaged drive
+and then powers off the system.
+
+Usage: sudo $(basename "$0")
+
+Dependencies:
+  - ddrescue (GNU ddrescue tool)
+
+Configuration:
+  - Source device: /dev/sdc2
+  - Destination: /mnt/HDJU
+  - Log file: /mntHDJU.logfile
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges and performs data recovery
+         operations on physical devices. It will power off the system
+         after recovery attempts. Be sure the target device is correct.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before accessing disk devices
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to access disk devices."
+  exit 1
+fi
+
+#ddrescue -n /dev/sdc2  /mnt/HDJU /mntHDJU.logfile
+
+
+ddrescue -d -r 3 /dev/sdc2  /mnt/HDJU /mntHDJU.logfile
+
+
+ddrescue -d -M  -r 3 /dev/sdc2  /mnt/HDJU /mntHDJU.logfile
+
+
+poweroff

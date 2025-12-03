@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# force-wayland - Set environment variables to force Wayland session
+#
+# This script sets environment variables that force applications to use Wayland.
+
+show_help() {
+    cat << EOF
+force-wayland - Set environment variables to force Wayland session
+
+This script sets environment variables that force applications to use Wayland.
+
+Usage: $(basename "$0")
+
+Configuration:
+  - GDK_BACKEND=wayland
+  - CLUTTER_BACKEND=wayland
+  - QT_QPA_PLATFORM=wayland
+  - XDG_SESSION_TYPE=wayland
+
+Examples:
+  source $(basename "$0")  # To set in current shell
+  . $(basename "$0")       # Alternative syntax
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+export GDK_BACKEND=wayland
+export CLUTTER_BACKEND=wayland
+export QT_QPA_PLATFORM=wayland
+	# wayland-egl ? qt5-wayland
+export XDG_SESSION_TYPE=wayland

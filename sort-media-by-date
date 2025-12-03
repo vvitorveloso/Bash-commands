@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# sort-media-by-date - Organize media files by date using phockup
+#
+# This script uses phockup to sort image and video files by date into
+# separate directories organized by year/month.
+
+show_help() {
+    cat << EOF
+sort-media-by-date - Organize media files by date using phockup
+
+This script uses phockup to sort image and video files by date into
+separate directories organized by year/month.
+
+Usage: $(basename "$0") <source_directory>
+
+Arguments:
+  source_directory    Directory containing media files to organize
+
+Dependencies:
+  - phockup (media file organizer)
+
+Process:
+  1. Creates 'image' and 'video' subdirectories in the parent directory
+  2. Uses phockup to organize images by date (YYYY/MM structure)
+  3. Uses phockup to organize videos by date (YYYY/MM structure)
+
+Examples:
+  $(basename "$0") /path/to/photos
+  $(basename "$0") ./my_media
+
+Configuration:
+  - Date format: YYYY/MM
+  - Image directory: image_<original_dir_name>
+  - Video directory: video_<original_dir_name>
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $(basename "$0") <source_directory>"
+    echo "Use -h or --help for more information."
+    exit 1
+fi
+
+dirpar=$(dirname $1)
+dir=$(basename $1)
+echo mkdir $dirpar/image
+echo mkdir $dirpar/video
+phockup -m -d YYYY/MM --file-type=image     $1 $dirpar/image_$dir
+echo phockup -t -m -d YYYY/MM --file-type=image  $1 $dirpar/image_$dir
+phockup -m -d YYYY/MM --file-type=video     $1 $dirpar/video_$dir
+echo phockup -t -m -d YYYY/MM --file-type=video  $1 $dirpar/video_$dir

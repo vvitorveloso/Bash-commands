@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# limit-cpu-usage - Limit maximum CPU frequency to reduce usage
+#
+# This script sets the maximum CPU frequency to 2.0 GHz (2000000 kHz) across all CPUs.
+
+show_help() {
+    cat << EOF
+limit-cpu-usage - Limit maximum CPU frequency to reduce usage
+
+This script sets the maximum CPU frequency to 2.0 GHz (2000000 kHz) across all CPUs.
+
+Usage: sudo $(basename "$0")
+
+Configuration:
+  - Target: /sys/bus/cpu/devices/cpu*/cpufreq/scaling_max_freq
+  - Frequency: 2000000 kHz (2.0 GHz)
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges and directly manipulates
+         CPU frequency scaling parameters.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before changing CPU frequency settings
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to modify CPU frequency settings."
+  exit 1
+fi
+
+echo 2000000 | sudo tee /sys/bus/cpu/devices/cpu*/cpufreq/scaling_max_freq

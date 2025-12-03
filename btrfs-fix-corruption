@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+# btrfs-fix-corruption - Find BTRFS filesystem corruption and identify affected files
+#
+# This script searches dmesg for BTRFS checksum errors and identifies
+# the files associated with corrupted inodes.
+#
+# Usage: btrfs-fix-corruption
+#
+# Examples:
+#   sudo btrfs-fix-corruption
+
+show_help() {
+    cat << EOF
+btrfs-fix-corruption - Find and identify BTRFS corrupted files
+
+This script searches dmesg for BTRFS checksum errors and identifies
+the files associated with corrupted inodes.
+
+Usage: $(basename "$0")
+
+Examples:
+    sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Elevate privileges and maintain sudo session
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges. Requesting password..."
+  sudo -v || { echo "Failed to obtain root privileges."; exit 1; }
+fi
+
+# Check for BTRFS checksum errors in dmesg
+echo "Looking for BTRFS errors in dmesg..."
+errors=$(sudo dmesg | grep "BTRFS warning" | grep "csum failed")
+
+if [[ -z "$errors" ]]; then
+  echo "No BTRFS errors found in dmesg."
+  exit 0
+fi
+
+# Extract inode numbers from errors
+inodes=$(echo "$errors" | grep -oP "ino \K[0-9]+" | sort -u)
+
+if [[ -z "$inodes" ]]; then
+  echo "Could not identify inodes in BTRFS errors."
+  exit 1
+fi
+
+# Find files corresponding to inodes
+echo "Locating problematic files..."
+for inode in $inodes; do
+  file=$(sudo find / -inum "$inode" 2>/dev/null)
+  if [[ -n "$file" ]]; then
+    echo "Problematic file found: $file (inode: $inode)"
+  else
+    echo "File not found for inode: $inode"
+  fi
+done

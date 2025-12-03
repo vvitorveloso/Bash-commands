@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# launch-genshin - Launch Genshin Impact using Wine
+#
+# This script launches Genshin Impact with appropriate Wine configuration
+# and Vulkan settings for optimal performance.
+
+show_help() {
+    cat << EOF
+launch-genshin - Launch Genshin Impact using Wine
+
+This script launches Genshin Impact with appropriate Wine configuration
+and Vulkan settings for optimal performance.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - Wine
+  - primus_vk (for prime-run)
+  - Vulkan drivers (NVIDIA)
+  - Genshin Impact installed at expected location
+
+Configuration:
+  - WINEPREFIX: /home/ochi/Games/genshin-impact/
+  - Vulkan ICD: NVIDIA
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+export WINEPREFIX=/home/ochi/Games/genshin-impact/
+export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
+prime-run wine '/home/ochi/Games/genshin-impact/drive_c/Program Files/Genshin Impact/Genshin Impact game/launcher.bat'

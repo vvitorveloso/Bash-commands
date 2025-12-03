@@ -1,0 +1,55 @@
+#!/bin/bash
+set -e
+
+# Cores para saida
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+echo -e "${GREEN}>>> Configurando variaveis...${NC}"
+# Link do SDK (Versão 24.10.4 conforme solicitado)
+SDK_LINK="https://downloads.openwrt.org/releases/24.10.4/targets/ramips/mt7621/openwrt-sdk-24.10.4-ramips-mt7621_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+SDK_FILE=$(echo $SDK_LINK | awk -F / '{print $NF}')
+SDK_DIR=$(echo $SDK_FILE | awk -F .tar '{print $1}')
+
+echo -e "${GREEN}>>> Limpando ambiente anterior...${NC}"
+rm -rf openwrt-sdk-* sdk.tar.zst
+
+echo -e "${GREEN}>>> Baixando SDK...${NC}"
+wget "$SDK_LINK" -O sdk.tar.zst
+
+echo -e "${GREEN}>>> Extraindo SDK...${NC}"
+tar -axf sdk.tar.zst
+rm sdk.tar.zst
+cd "$SDK_DIR"
+
+echo -e "${GREEN}>>> Corrigindo feeds (Usando mirror do GitHub para estabilidade)...${NC}"
+# Substitui git.openwrt.org por github.com/openwrt para evitar timeouts
+sed -i 's|https://git.openwrt.org/openwrt/openwrt.git|https://github.com/openwrt/openwrt.git|g' feeds.conf.default
+sed -i 's|https://git.openwrt.org/feed/packages.git|https://github.com/openwrt/packages.git|g' feeds.conf.default
+sed -i 's|https://git.openwrt.org/project/luci.git|https://github.com/openwrt/luci.git|g' feeds.conf.default
+sed -i 's|https://git.openwrt.org/feed/routing.git|https://github.com/openwrt/routing.git|g' feeds.conf.default
+sed -i 's|https://git.openwrt.org/feed/telephony.git|https://github.com/openwrt/telephony.git|g' feeds.conf.default
+
+echo -e "${GREEN}>>> Adicionando feed do usteer-ng...${NC}"
+echo 'src-git usteerng https://github.com/vvitorveloso/usteer-ng' >> feeds.conf.default
+
+echo -e "${GREEN}>>> Atualizando e instalando feeds base...${NC}"
+./scripts/feeds update -a
+./scripts/feeds install usteer-ng
+./scripts/feeds install luci-base
+
+echo -e "${GREEN}>>> Configurando luci-app-usteer-ng (Manual)...${NC}"
+# Clonamos manualmente para ter controle total sobre o Makefile e evitar erros de feed
+git clone https://github.com/vvitorveloso/luci-app-usteer-ng package/luci-app-usteer-ng
+
+echo -e "${GREEN}>>> Preparando configuração de build (.config)...${NC}"
+make defconfig
+
+echo -e "${GREEN}>>> Compilando usteer-ng...${NC}"
+make package/usteer-ng/compile V=s
+
+echo -e "${GREEN}>>> Compilando luci-app-usteer-ng...${NC}"
+make package/luci-app-usteer-ng/compile V=s
+
+echo -e "${GREEN}>>> Concluído! Pacotes gerados em bin/packages/...${NC}"
+find bin/packages -name "*usteer-ng*.ipk"

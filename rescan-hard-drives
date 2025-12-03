@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# rescan-hard-drives - Rescan all SCSI hosts to detect new drives
+#
+# This script sends a rescan command to all SCSI hosts to detect new drives.
+
+show_help() {
+    cat << EOF
+rescan-hard-drives - Rescan all SCSI hosts to detect new drives
+
+This script sends a rescan command to all SCSI hosts to detect new drives.
+
+Usage: sudo $(basename "$0")
+
+Configuration:
+  - Rescans all SCSI hosts in /sys/class/scsi_host/host*/
+  - Command: scan with "- - -" (rescan all channels, targets, LUNs)
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges and directly manipulates
+         system storage interfaces.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before accessing system storage interfaces
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to access system storage interfaces."
+  exit 1
+fi
+
+echo "- - -" > /sys/class/scsi_host/host*/scan

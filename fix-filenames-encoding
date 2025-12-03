@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# fix-filenames-encoding - Fix filename encoding by transliterating accented characters
+#
+# This script finds files with accented characters in their names and
+# transliterates them to ASCII equivalents.
+
+show_help() {
+    cat << EOF
+fix-filenames-encoding - Fix filename encoding by transliterating accented characters
+
+This script finds files with accented characters in their names and
+transliterates them to ASCII equivalents.
+
+Usage: $(basename "$0") <directory>
+
+Arguments:
+  directory    The directory to process for files with accented characters
+
+Examples:
+  $(basename "$0") /path/to/files
+  $(basename "$0") .    # Current directory
+
+Dependencies:
+  - find command
+  - iconv (for character encoding conversion)
+
+WARNING: This script only prints the commands that would be executed.
+         To actually rename files, you need to pipe to 'bash' or execute manually.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $(basename "$0") <directory>"
+    echo "Use -h or --help for more information."
+    exit 1
+fi
+
+IFS=$'\n'
+
+echo $1
+find $1 -regextype posix-egrep -regex '.[{ÁÉÍÓÚÀÈÌÒÙÄËÏÖÜé].' | while read filename; do
+file_clean=$(echo "$filename" | iconv -f utf8 -t ascii//TRANSLIT)
+echo mv -n "$filename" "$file_clean"
+echo "$file_clean"
+done

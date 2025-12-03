@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+# sort-by-date-annual - Organize files by modification year only
+#
+# This script sorts files by their modification year, creating directories
+# for each year and moving files accordingly.
+
+show_help() {
+    cat << EOF
+sort-by-date-annual - Organize files by modification year only
+
+This script sorts files by their modification year, creating directories
+for each year and moving files accordingly.
+
+Usage: $(basename "$0")
+
+Process:
+  1. Scans all files in current directory
+  2. Creates directories named after the modification year of each file
+  3. Moves files to their corresponding year directory
+
+Examples:
+  $(basename "$0")
+
+Output:
+  Files are organized in YEAR directories based on modification year
+  Empty directories are removed during processing
+
+Configuration:
+  - Creates a 'workdir' temporary directory (commented out in this version)
+  - Uses file modification time to determine year
+  - Skips files that already exist in target directory
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+IFS=$'\n'
+mkdir workdir
+
+#find . -type f -print0 | xargs -0 mv --backup=t  -t workdir/
+
+find . -type d -empty -print -delete
+
+
+#cd workdir/
+
+#for i in $(find . -name "*.~*~"  -type f);do ext=$(echo $i| awk -F. '{ print $(NF-1) }') ; mv -n $i $i.$ext ;done
+
+FILE=$(find . -type f -printf "%TY/%Tm_%Td_%TH_%TM_%TS_%f\n")
+
+for i in $FILE;do
+
+	DIR=$(echo $i |cut -d"/" -f 1)
+
+	if [ ! -f $i ];then
+		 mkdir --parent $DIR
+		 mv --backup=t $(echo $i | cut -d'_' -f6-99) $i
+	else
+		echo file exists
+	fi
+
+done

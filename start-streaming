@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# start-streaming - Stream to multiple platforms simultaneously
+#
+# This script accepts an RTMP stream on localhost and re-broadcasts it to
+# YouTube and Facebook simultaneously.
+
+show_help() {
+    cat << EOF
+start-streaming - Stream to multiple platforms simultaneously
+
+This script accepts an RTMP stream on localhost and re-broadcasts it to
+YouTube and Facebook simultaneously.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - ffmpeg
+  - An RTMP source streaming to rtmp://127.0.0.1:1935/live/app
+
+Configuration:
+  - Input: rtmp://127.0.0.1:1935/live/app
+  - YouTube output: rtmp://a.rtmp.youtube.com/live2/
+  - Facebook output: rtmps://live-api-s.facebook.com:443/rtmp/
+
+WARNING: You need to set your streaming keys in the script variables:
+  - YOUTUBE_KEY: Your YouTube streaming key
+  - FACEBOOK_KEY: Your Facebook streaming key
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+YOUTUBE_KEY=""
+FACEBOOK_KEY=""
+
+while `true`
+do
+
+ffmpeg -v debug -listen 1 -timeout 2000  -i rtmp://127.0.0.1:1935/live/app \
+-c copy -f flv  rtmp://a.rtmp.youtube.com/live2/$YOUTUBE_KEY \
+-c copy -f flv "rtmps://live-api-s.facebook.com:443/rtmp/$FACEBOOK_KEY"
+# tested with simultanly with periscope, in teory add as many as you want
+
+done

@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# reload-sata - Reload SATA controllers by rescanning SCSI hosts
+#
+# This script rescans all SCSI hosts to detect new SATA devices.
+
+show_help() {
+    cat << EOF
+reload-sata - Reload SATA controllers by rescanning SCSI hosts
+
+This script rescans all SCSI hosts to detect new SATA devices.
+
+Usage: sudo $(basename "$0")
+
+Configuration:
+  - Rescans all SCSI hosts in /sys/class/scsi_host/host*/
+  - Commands: scan with "0 0 0", partprobe for partition updates
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges and directly manipulates
+         system storage interfaces.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before accessing system storage interfaces
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to access system storage interfaces."
+  exit 1
+fi
+
+echo 0 0 0 | sudo tee /sys/class/scsi_host/host*/scan
+sudo partprobe

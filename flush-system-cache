@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# flush-system-cache - Flush system caches to free memory
+#
+# This script flushes various system caches to free up RAM.
+# It syncs data to disk first, then drops page cache, dentries and inodes.
+#
+# Usage: flush-system-cache
+
+show_help() {
+    cat << EOF
+flush-system-cache - Flush system caches to free memory
+
+This script flushes various system caches to free up RAM.
+It syncs data to disk first, then drops page cache, dentries and inodes.
+
+Usage: $(basename "$0")
+
+WARNING: This may temporarily slow down file operations as cached data is cleared.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for sudo privileges
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to write to /proc/sys/vm/drop_caches"
+  sudo -v || { echo "Failed to obtain root privileges."; exit 1; }
+fi
+
+echo "Flushing system caches..."
+sync
+echo 1 | sudo tee /proc/sys/vm/drop_caches
+echo "System caches flushed."

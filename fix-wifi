@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# fix-wifi - Fix WiFi by reloading network modules
+#
+# This script fixes WiFi issues by stopping NetworkManager, unloading
+# and reloading WiFi-related kernel modules, then restarting NetworkManager.
+
+show_help() {
+    cat << EOF
+fix-wifi - Fix WiFi by reloading network modules
+
+This script fixes WiFi issues by stopping NetworkManager, unloading
+and reloading WiFi-related kernel modules, then restarting NetworkManager.
+
+Usage: sudo $(basename "$0")
+
+WARNING: This script requires root privileges and will temporarily
+         disconnect your network connection.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before proceeding with actual operations
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to reload kernel modules."
+  exit 1
+fi
+
+sudo systemctl stop NetworkManager
+
+for i in $(echo ath10k_pci ath10k_core ath mac80211 cfg80211 ath9k); do
+    sudo rmmod $i
+done
+
+for i in $(echo ath10k_pci ath10k_core ath mac80211 cfg80211 ath9k); do
+    sudo modprobe $i
+done
+
+sudo systemctl start NetworkManager

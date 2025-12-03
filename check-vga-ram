@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# check-vga-ram - Utilize VRAM as swap space
+#
+# This script sets up VRAM as swap space using vramfs.
+# WARNING: This script handles system memory and requires root privileges.
+
+show_help() {
+    cat << EOF
+check-vga-ram - Utilize VRAM as swap space
+
+This script sets up VRAM as swap space using vramfs.
+This is an advanced memory management technique that uses video RAM as swap space.
+
+Usage: sudo $(basename "$0")
+
+WARNING: This script directly manipulates system memory and swap space.
+         It requires root privileges and may affect system stability.
+         Use with caution.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before proceeding (except for help)
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to manipulate system memory."
+  exit 1
+fi
+
+#Clean
+sudo swapoff -a
+sudo killall vramfs
+sudo umount /tmp/vram
+sudo rm -rf /tmp/vram
+sudo losetup --detach-all
+
+sudo mkdir /tmp/vram
+sudo vramfs /tmp/vram 99GB -f &
+sleep 1
+#sudo dd if=/dev/zero of=/tmp/vram/swapfile bs=1M count=790 # Substitute 200 with your target swapspace size in MB
+#sudo chmod 600 /tmp/vram/swapfile
+#sudo chown root:root /tmp/vram/swapfile
+#sudo mkswap /tmp/vram/swapfile
+#sudo swapon /tmp/vram/swapfile
+sleep 1
+ram=$(sudo df -B1 /tmp/vram | grep vramfs | awk '{print $2}' )
+
+#cd /tmp/vram
+LOOPDEV=$(losetup -f)
+echo $ram
+sudo truncate -s $ram /tmp/vram/swapfile # replace 4G with target swapspace size, has to be smaller than the allocated vramfs
+sudo losetup $LOOPDEV /tmp/vram/swapfile
+sleep 1
+mkswap $LOOPDEV
+sleep 1
+sudo swapon $LOOPDEV

@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# gpu-amd-override - Force AMD GPU usage with specific OpenGL version
+#
+# Usage: gpu-amd-override <command>
+#
+# Examples:
+#   gpu-amd-override glxinfo
+#   gpu-amd-override vlc
+#   gpu-amd-override blender
+#
+
+show_help() {
+    cat << EOF
+gpu-amd-override - Force AMD GPU usage with specific OpenGL version
+
+Usage: $(basename "$0") <command_to_run>
+
+Examples:
+  $(basename "$0") glxinfo
+  $(basename "$0") vlc
+  $(basename "$0") blender
+
+EOF
+}
+
+# Check for help flag first
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $(basename "$0") <command_to_run>"
+    echo "Example: $(basename "$0") glxinfo"
+    exit 1
+fi
+
+DRI_PRIME=1 MESA_GL_VERSION_OVERRIDE=4.4 MESA_GLSL_VERSION_OVERRIDE=440 "$@"

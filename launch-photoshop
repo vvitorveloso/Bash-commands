@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# launch-photoshop - Launch Adobe Photoshop through Wine
+#
+# This script launches Adobe Photoshop CC 2019 using a specific Wine prefix.
+
+show_help() {
+    cat << EOF
+launch-photoshop - Launch Adobe Photoshop through Wine
+
+This script launches Adobe Photoshop CC 2019 using a specific Wine prefix.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - Wine
+  - Adobe Photoshop CC 2019 installed in Wine prefix
+
+Configuration:
+  - WINEARCH: win64
+  - WINEPREFIX: /home/ochi/.wineadobe
+  - Executable: /home/ochi/.wineadobe/drive_c/Program Files/Adobe/Adobe Photoshop CC 2019/Photoshop.exe
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+WINEARCH=win64 WINEPREFIX=/home/ochi/.wineadobe wine /home/ochi/.wineadobe/drive_c/Program\ Files/Adobe/Adobe\ Photoshop\ CC\ 2019/Photoshop.exe

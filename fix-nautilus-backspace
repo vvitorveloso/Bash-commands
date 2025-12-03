@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# fix-nautilus-backspace - Restore backspace functionality in Nautilus
+#
+# This script downloads and installs a Python extension to restore
+# backspace key functionality in Nautilus file manager.
+
+show_help() {
+    cat << EOF
+fix-nautilus-backspace - Restore backspace functionality in Nautilus
+
+This script downloads and installs a Python extension to restore
+backspace key functionality in Nautilus file manager.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - wget (to download the extension)
+  - Nautilus-Python (nautilus-python package)
+  - Python support in Nautilus
+
+Configuration:
+  - Downloads from: https://raw.githubusercontent.com/jesusferm/Nautilus-BackSpace/
+  - Installs to: ~/.local/share/nautilus-python/extensions/
+  - Restarts: Nautilus file manager
+
+Examples:
+  $(basename "$0")
+
+WARNING: This script will restart the Nautilus file manager.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check if wget is available
+if ! command -v wget &> /dev/null; then
+    echo "Error: wget is required but not installed."
+    exit 1
+fi
+
+wget "https://raw.githubusercontent.com/jesusferm/Nautilus-BackSpace/refs/heads/main/BackSpaceGnome47.py"
+cp BackSpaceGnome47.py ~/.local/share/nautilus-python/extensions
+nautilus -q

@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# sort-photorec-files - Sort PhotoRec recovery files by extension
+#
+# This script organizes recovered files from PhotoRec by moving them into
+# directories named after their file extensions.
+
+show_help() {
+    cat << EOF
+sort-photorec-files - Sort PhotoRec recovery files by extension
+
+This script organizes recovered files from PhotoRec by moving them into
+directories named after their file extensions.
+It also removes duplicate files and empty directories.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - fdupes (to remove duplicates)
+  - This should be run in a PhotoRec recovery directory (with recup_dir.* folders)
+
+Examples:
+  $(basename "$0")  # Run in the PhotoRec output directory
+
+WARNING: This script modifies the current directory structure by
+         removing duplicates and moving files into extension-based folders.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+fdupes -r -d -N .
+
+for i in $(find ./recup_dir.* -type f);do
+	ext=$(echo $i | sed 's|.*\.||')
+#	echo $i
+#	echo $ext
+echo	mkdir --parents ./$ext/
+        mkdir --parents ./$ext/
+echo	mv -v --backup=nil $i ./$ext/
+        mv -v --backup=nil $i ./$ext/
+
+done
+
+find . -type d -empty -delete

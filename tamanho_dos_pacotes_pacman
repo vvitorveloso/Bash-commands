@@ -1,2 +1,35 @@
 #!/bin/bash
+#
+# tamanho_dos_pacotes_pacman - Show largest installed packages by size
+#
+# This script lists the 25 largest installed packages in a pacman-based system.
+
+show_help() {
+    cat << EOF
+tamanho_dos_pacotes_pacman - Show largest installed packages by size
+
+This script lists the 25 largest installed packages in a pacman-based system.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - pacman (package manager)
+  - awk (text processing)
+
+Output:
+  - Shows installed package size and name
+  - Sorted by size in descending order
+  - Limited to top 25 largest packages
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
 pacman -Qi | awk '/^Nome/{name=$3} /^Tamanho instalado/{print $4$5, name}' | sort -hr | head -25

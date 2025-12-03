@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+# setup-lenovo-mic-service - Set up systemd service for Lenovo microphone fix
+#
+# This script sets up a systemd service that automatically applies the
+# Lenovo microphone fix after Pipewire starts.
+#
+# Usage: setup-lenovo-mic-service
+
+show_help() {
+    cat << EOF
+setup-lenovo-mic-service - Set up systemd service for Lenovo microphone fix
+
+This script sets up a systemd service that automatically applies the
+Lenovo microphone fix after Pipewire starts.
+
+Usage: $(basename "$0")
+
+WARNING: This script must run with root privileges and will modify
+         system configuration files.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Verify if the fix-lenovo-mic script exists
+if [ ! -f "/home/ochi/commands/fix-lenovo-mic" ]; then
+    echo "Error: fix-lenovo-mic script not found in expected location."
+    echo "Make sure it's available before running this setup script."
+    exit 1
+fi
+
+# Check if running as root
+if [[ $EUID -ne 0 ]]; then
+  echo "This script must be run as root."
+  exit 1
+fi
+
+# Step 1: Copy the script to /opt/
+echo "Copying microphone fix script to /opt/..."
+sudo cp /home/ochi/commands/fix-lenovo-mic /opt/fix-lenovo-mic
+sudo chmod +x /opt/fix-lenovo-mic
+
+# Step 2: Create the systemd unit
+echo "Creating systemd service unit..."
+cat << EOF | sudo tee /etc/systemd/system/fix-lenovo-mic.service
+[Unit]
+Description=Fix Lenovo Microphone
+After=pipewire.service
+Wants=pipewire.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/fix-lenovo-mic
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Step 3: Reload and enable the service
+echo "Reloading systemd daemon and enabling service..."
+sudo systemctl daemon-reload
+sudo systemctl enable fix-lenovo-mic.service
+
+# Step 4: Start the service
+sudo systemctl start fix-lenovo-mic.service
+
+echo "Service for fixing Lenovo microphone has been configured and started."
+echo "It will run automatically after Pipewire starts on subsequent boots."

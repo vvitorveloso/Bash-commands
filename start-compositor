@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# start-compositor - Start Compton compositor for specific desktop environments
+#
+# This script starts the Compton compositor with optimized settings
+# for LXQt and LXDE desktop environments.
+#
+# Usage: start-compositor
+
+show_help() {
+    cat << EOF
+start-compositor - Start Compton compositor for specific desktop environments
+
+This script starts the Compton compositor with optimized settings
+for LXQt and LXDE desktop environments.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - compton: Install using 'sudo apt install compton' or equivalent
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+DESKTOP_ENV=$(echo $XDG_CURRENT_DESKTOP)
+
+if [ "$DESKTOP_ENV" == "lxqt" ] || [ "$DESKTOP_ENV" == "LXQt" ]; then
+    echo "Starting compositor for LXQt..."
+    compton --backend glx --xrender-sync-fence &
+elif [ "$DESKTOP_ENV" == "LXDE" ]; then
+    echo "Starting compositor for LXDE..."
+    compton --backend glx --xrender-sync-fence &
+else
+    echo "Current desktop environment ($DESKTOP_ENV) is not LXQt or LXDE, skipping compositor."
+    exit 0
+fi
+
+echo "Compositor started in background."

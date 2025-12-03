@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# fix-lenovo-320-mic - Fix microphone issues on Lenovo 320 laptop
+#
+# This script modifies PulseAudio configuration to fix microphone issues
+# on Lenovo 320 laptops by creating a remapped mono recording source.
+
+show_help() {
+    cat << EOF
+fix-lenovo-320-mic - Fix microphone issues on Lenovo 320 laptop
+
+This script modifies PulseAudio configuration to fix microphone issues
+on Lenovo 320 laptops by creating a remapped mono recording source.
+
+Usage: sudo $(basename "$0")
+
+Dependencies:
+  - PulseAudio
+  - PulseAudio command-line tools (pacmd)
+
+Configuration:
+  - Creates backup of: /etc/pulse/default.pa
+  - Modifies PulseAudio default configuration
+  - Creates remapped mono recording source
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges and modifies system
+         audio configuration. A backup of the original file is created.
+
+To undo changes:
+  sudo cp /etc/pulse/default.pa.bkp /etc/pulse/default.pa
+  pulseaudio -k && pulseaudio --start
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before modifying system audio configuration
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to modify PulseAudio configuration."
+  exit 1
+fi
+
+sudo cp /etc/pulse/default.pa /etc/pulse/default.pa.bkp
+#undo
+#sudo cp /etc/pulse/default.pa.bkp /etc/pulse/default.pa
+
+echo " " | sudo tee -a /etc/pulse/default.pa
+echo '############################### FIX MIC FOR LENOVO 320' | sudo tee -a /etc/pulse/default.pa
+echo load-module module-remap-source source_name=record_mono master=$(pacmd list-sources | grep 'name:.*input'| cut -d"<" -f2 |cut -d">" -f1) master_channel_map=front-left channel_map=mono | sudo tee -a /etc/pulse/default.pa
+echo set-default-source record_mono | sudo tee -a /etc/pulse/default.pa
+
+pulseaudio -k
+pulseaudio --start

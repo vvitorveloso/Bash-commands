@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# start-waydroid-wayland - Start Waydroid session with Wayland support
+#
+# This script starts a Waydroid session with Wayland session type.
+
+show_help() {
+    cat << EOF
+start-waydroid-wayland - Start Waydroid session with Wayland support
+
+This script starts a Waydroid session with Wayland session type.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - Waydroid
+  - Wayland compositor
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+XDG_SESSION_TYPE=wayland waydroid session start

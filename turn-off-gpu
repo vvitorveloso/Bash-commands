@@ -1,0 +1,93 @@
+#!/bin/bash
+#
+# turn-off-gpu - Attempt to turn off discrete GPU using ACPI calls
+#
+# This script attempts to turn off a discrete GPU by trying various ACPI methods.
+
+show_help() {
+    cat << EOF
+turn-off-gpu - Attempt to turn off discrete GPU using ACPI calls
+
+This script attempts to turn off a discrete GPU by trying various ACPI methods.
+It uses the acpi_call kernel module to send ACPI commands that may power off the GPU.
+
+Usage: sudo $(basename "$0")
+
+Dependencies:
+  - acpi_call kernel module
+  - Root access to /proc/acpi/call
+
+WARNING: This script requires root privileges and directly manipulates
+         hardware via ACPI calls. Use with caution as it may affect system stability.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before accessing hardware
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to access hardware via ACPI calls."
+  exit 1
+fi
+
+modprobe acpi_call
+
+if lsmod | grep -q acpi_call; then
+methods="
+\_SB.PCI0.P0P1.VGA._OFF
+\_SB.PCI0.P0P2.VGA._OFF
+\_SB_.PCI0.OVGA.ATPX
+\_SB_.PCI0.OVGA.XTPX
+\_SB.PCI0.P0P3.PEGP._OFF
+\_SB.PCI0.P0P2.PEGP._OFF
+\_SB.PCI0.P0P1.PEGP._OFF
+\_SB.PCI0.MXR0.MXM0._OFF
+\_SB.PCI0.PEG1.GFX0._OFF
+\_SB.PCI0.PEG0.GFX0.DOFF
+\_SB.PCI0.PEG1.GFX0.DOFF
+\_SB.PCI0.PEG0.PEGP._OFF
+\_SB.PCI0.XVR0.Z01I.DGOF
+\_SB.PCI0.PEGR.GFX0._OFF
+\_SB.PCI0.PEG.VID._OFF
+\_SB.PCI0.PEG0.VID._OFF
+\_SB.PCI0.P0P2.DGPU._OFF
+\_SB.PCI0.P0P4.DGPU.DOFF
+\_SB.PCI0.IXVE.IGPU.DGOF
+\_SB.PCI0.RP00.VGA._PS3
+\_SB.PCI0.RP00.VGA.P3MO
+\_SB.PCI0.GFX0.DSM._T_0
+\_SB.PCI0.LPC.EC.PUBS._OFF
+\_SB.PCI0.P0P2.NVID._OFF
+\_SB.PCI0.P0P2.VGA.PX02
+\_SB_.PCI0.PEGP.DGFX._OFF
+\_SB_.PCI0.VGA.PX02
+\_SB.PCI0.PEG0.PEGP.SGOF
+\_SB.PCI0.AGP.VGA.PX02
+"
+
+for m in $methods; do
+    echo -n "Trying $m: "
+    echo $m > /proc/acpi/call
+    result=$(cat /proc/acpi/call)
+    case "$result" in
+        Error*)
+            echo "failed"
+        ;;
+        *)
+            echo "works!"
+            # break # try out outher methods too
+        ;;
+    esac
+done
+
+else
+    echo "The acpi_call module is not loaded, try running 'modprobe acpi_call' or 'insmod acpi_call.ko' as root"
+    exit 1
+fi

@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# ID_SERVER - Connect to a server using waypipe SSH
+#
+# This script connects to a predefined server using waypipe for Wayland support.
+
+show_help() {
+    cat << EOF
+ID_SERVER - Connect to a server using waypipe SSH
+
+This script connects to a predefined server using waypipe for Wayland support.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - waypipe (for Wayland forwarding)
+  - SSH access to 'ID_SERVER' (must be configured in SSH config)
+
+Configuration:
+  - Connects to server identified as 'ID_SERVER' in SSH config
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+waypipe ssh ID_SERVER

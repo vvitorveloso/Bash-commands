@@ -1,0 +1,94 @@
+#!/bin/bash
+#
+# fix-alt-tab-behavior - Change Alt+Tab behavior in GNOME to switch between windows
+#
+# By default: switches between individual WINDOWS (Windows/KDE style)
+# With --reset: restores GNOME default (group APPLICATIONS)
+#
+# Usage: fix-alt-tab-behavior [OPTIONS]
+#
+# Examples:
+#   fix-alt-tab-behavior              # Change to window switching
+#   fix-alt-tab-behavior --reset     # Restore GNOME default
+
+show_help() {
+    cat << EOF
+fix-alt-tab-behavior - Change Alt+Tab behavior in GNOME to switch between windows
+
+By default: switches between individual WINDOWS (Windows/KDE style)
+With --reset: restores GNOME default (group APPLICATIONS)
+
+Usage: $(basename "$0") [OPTIONS]
+
+OPTIONS:
+  --reset     Restore GNOME default behavior (group applications)
+  -h, --help  Show this help message
+
+Examples:
+  $(basename "$0")              # Change to window switching
+  $(basename "$0") --reset     # Restore GNOME default
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Schema path for gsettings
+SCHEMA="org.gnome.desktop.wm.keybindings"
+
+# Function to apply "Windows" mode (individual window switching)
+apply_window_mode() {
+    echo "Applying shortcuts to switch between individual WINDOWS..."
+
+    # Clear the grouped application shortcuts to free up Alt+Tab keys
+    gsettings set $SCHEMA switch-applications "[]"
+    gsettings set $SCHEMA switch-applications-backward "[]"
+
+    # Set 'switch-windows' (individual) to Alt+Tab
+    gsettings set $SCHEMA switch-windows "['<Alt>Tab']"
+    gsettings set $SCHEMA switch-windows-backward "['<Shift><Alt>Tab']"
+
+    echo "Done! Alt+Tab now switches between individual windows."
+}
+
+# Function to apply the alternative mode from make_gnome_suck_less
+apply_classic_mode() {
+    echo "Applying classic window switching mode..."
+
+    # Define the schema path for easier maintenance
+    SCHEMA="org.gnome.desktop.wm.keybindings"
+
+    # 1. Clear the "Switch Applications" shortcuts (grouped)
+    # This is mandatory to free up the <Alt>Tab and <Shift><Alt>Tab keys
+    gsettings set $SCHEMA switch-applications "[]"
+    gsettings set $SCHEMA switch-applications-backward "[]"
+
+    # 2. Define shortcuts for "Switch Windows" (Linear/Individual)
+    gsettings set $SCHEMA switch-windows "['<Alt>Tab']"
+    gsettings set $SCHEMA switch-windows-backward "['<Shift><Alt>Tab']"
+
+    echo "GNOME configured to switch individual windows (classic style)."
+}
+
+# Function to revert to GNOME default
+revert_gnome_default() {
+    echo "Restoring GNOME default shortcuts (grouped)..."
+
+    # Reset both pairs of shortcuts
+    gsettings reset $SCHEMA switch-applications
+    gsettings reset $SCHEMA switch-applications-backward
+    gsettings reset $SCHEMA switch-windows
+    gsettings reset $SCHEMA switch-windows-backward
+
+    echo "Done! Alt+Tab now groups applications (GNOME default)."
+}
+
+# Check the passed argument
+if [ "$1" == "--reset" ]; then
+    revert_gnome_default
+else
+    apply_classic_mode
+fi

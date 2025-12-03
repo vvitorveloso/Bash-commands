@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# fix-permissions - Fix directory permissions using pacrepairfile
+#
+# This script fixes permissions for files in a given directory using pacrepairfile.
+
+show_help() {
+    cat << EOF
+fix-permissions - Fix directory permissions using pacrepairfile
+
+This script fixes permissions for files in a given directory using pacrepairfile.
+
+Usage: $(basename "$0") <directory>
+
+Examples:
+  $(basename "$0") /path/to/directory
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $(basename "$0") <directory>"
+    echo "Use -h or --help for more information."
+    exit 1
+fi
+
+find "$1" -exec pacrepairfile --uid --gid --mode {} \;

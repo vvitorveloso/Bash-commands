@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# fix-screen-tearing - Fix screen tearing in XFCE by configuring XFWM4
+#
+# This script configures XFWM4 to use GLX for vblank synchronization
+# to reduce or eliminate screen tearing.
+
+show_help() {
+    cat << EOF
+fix-screen-tearing - Fix screen tearing in XFCE by configuring XFWM4
+
+This script configures XFWM4 to use GLX for vblank synchronization
+to reduce or eliminate screen tearing.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - XFCE window manager (xfwm4)
+  - xfconf-query (XFCE configuration tool)
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+xfwm4 --replace --vblank=glx &
+xfconf-query -c xfwm4 -p /general/vblank_mode -s glx

@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# mount-windows-hd - Mount Windows VM disk image as a block device
+#
+# This script connects a QCOW2 disk image to a NBD device and mounts it.
+
+show_help() {
+    cat << EOF
+mount-windows-hd - Mount Windows VM disk image as a block device
+
+This script connects a QCOW2 disk image to a NBD device and mounts it.
+It's specifically configured for a Windows 10 VM image.
+
+Usage: sudo $(basename "$0")
+
+Dependencies:
+  - qemu-nbd (QEMU NBD client)
+  - nbd kernel module
+  - Root access for mounting
+
+Configuration:
+  - VM image: /home/ochi/VMs/Win10/Win10.qcow2
+  - NBD device: /dev/nbd0
+  - Partition: p1
+  - Mount point: /mnt/Win10HD
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges and directly manipulates
+         system devices. The VM should not be running when this is used.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before manipulating devices and mounting
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to manipulate devices and mount filesystems."
+  exit 1
+fi
+
+modprobe nbd
+qemu-nbd --connect=/dev/nbd0 /home/ochi/VMs/Win10/Win10.qcow2
+mount /dev/nbd0p1 /mnt/Win10HD

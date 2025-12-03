@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# read-vga-rom - Read VGA BIOS ROM from a specific PCI device
+#
+# This script reads the video BIOS from a specific PCI device and saves it to files.
+
+show_help() {
+    cat << EOF
+read-vga-rom - Read VGA BIOS ROM from a specific PCI device
+
+This script reads the video BIOS from a specific PCI device (0000:02:00.0)
+and saves it to files in /boot directory.
+
+Usage: sudo $(basename "$0")
+
+Configuration:
+  - PCI device: 0000:02:00.0
+  - Output files: /boot/vbios.rom, /boot/gpu.rom
+
+WARNING: This script requires root privileges and directly manipulates
+         hardware via system interfaces. It is configured for specific
+         hardware and may not work on other configurations.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before accessing hardware
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to access hardware via system interfaces."
+  exit 1
+fi
+
+cd /sys/bus/pci/devices/0000:02:00.0/
+echo 1 > rom
+cat rom > /boot/vbios.rom
+echo 0 > rom
+
+sleep 1
+
+echo 1 > /sys/bus/pci/devices/0000:02:00.0/enable
+echo 1 > /sys/bus/pci/devices/0000:02:00.0/rom
+cat /sys/bus/pci/devices/0000:02:00.0/rom > /boot/gpu.rom
+echo 0 > /sys/bus/pci/devices/0000:02:00.0/rom
+echo 0 > /sys/bus/pci/devices/0000:02:00.0/enable

@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# connect-windows-rdp - Connect to Windows via RDP using stored credentials
+#
+# This script connects to a Windows machine via RDP using credentials
+# stored with secret-tool.
+
+show_help() {
+    cat << EOF
+connect-windows-rdp - Connect to Windows via RDP using stored credentials
+
+This script connects to a Windows machine via RDP using credentials
+stored with secret-tool.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - xfreerdp (FreeRDP client)
+  - secret-tool (for credential management)
+
+Setup:
+  Store credentials with:
+    secret-tool store --label="RDP_LOCAL" WIN11 USER
+    secret-tool store --label="RDP_LOCAL" WIN11 PASS
+
+Examples:
+  $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+#First Time? Store Login Info
+
+#$ secret-tool store --label="RDP_LOCAL" WIN11 USER
+#type user
+#$ secret-tool store --label="RDP_LOCAL" WIN11 PASS
+#type pass
+
+USER=$(secret-tool lookup WIN11 USER)
+PASS=$(secret-tool lookup WIN11 PASS)
+
+if [ -z "$USER" ] || [ -z "$PASS" ]; then
+    echo "Error: Could not retrieve credentials from secret-tool"
+    echo "Setup: secret-tool store --label=\"RDP_LOCAL\" WIN11 USER"
+    echo "       secret-tool store --label=\"RDP_LOCAL\" WIN11 PASS"
+    exit 1
+fi
+
+#sdl-freerdp
+xfreerdp +aero +clipboard +home-drive +auto-reconnect /sound:sys:alsa /v:Win11.lan:3389 /u:$USER /p:$PASS  /w:1350 /h:718

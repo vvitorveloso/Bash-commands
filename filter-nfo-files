@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# filter-nfo-files - Find and process NFO files in Super Nintendo emulator directory
+#
+# This script finds small NFO files and identifies directories without valid NFO files.
+
+show_help() {
+    cat << EOF
+filter-nfo-files - Find and process NFO files in Super Nintendo emulator directory
+
+This script finds small NFO files and identifies directories without valid NFO files.
+
+Usage: $(basename "$0")
+
+Configuration:
+  - Search directory: /midia/games/emulator/Super_Nintendo
+  - File pattern: *.nfo
+  - Size filter: less than 3 bytes
+
+Examples:
+  $(basename "$0")
+
+WARNING: This script outputs commands that would move directories to 'notok' subdirectory.
+         The commands are echoed but not executed.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+find  /midia/games/emulator/Super_Nintendo -name "*.nfo" -type 'f' -size -3
+
+
+IFS=$'\n'
+
+
+#https://askubuntu.com/questions/370024/find-directories-that-dont-contain-a-file-but-yes-another-one PLUS SOME THINGS
+
+for i in $(find /midia/games/emulator/Super_Nintendo -maxdepth 1 -type d '!'   -exec sh -c 'ls -1 "{}"|egrep -iq "^*\.nfo$"' ';' -print); do echo "mv $i "$(dirname "$i")/notok"";done

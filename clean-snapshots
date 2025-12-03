@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# clean-snapshots - Clean BTRFS snapshots from common snapshot locations
+#
+# This script removes BTRFS snapshots from standard snapshot directories.
+
+show_help() {
+    cat << EOF
+clean-snapshots - Clean BTRFS snapshots from common snapshot locations
+
+This script removes BTRFS snapshots from standard snapshot directories.
+
+Usage: sudo $(basename "$0")
+
+Configuration:
+  - Directories cleaned:
+    - /mnt/home/.snapshots/*/snapshot*
+    - /home/.snapshots/*/snapshot*
+    - /.snapshots/*/snapshot*
+
+WARNING: This script requires root privileges and permanently deletes
+         BTRFS snapshots and related data. Use with extreme caution as
+         it will result in data loss that cannot be recovered.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before deleting system snapshots
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to delete BTRFS snapshots."
+  exit 1
+fi
+
+sudo btrfs subvolume delete /mnt/home/.snapshots/*/snapshot*
+sudo btrfs subvolume delete /home/.snapshots/*/snapshot*
+sudo btrfs subvolume delete /.snapshots/*/snapshot*
+
+for i in $(sudo ls /home/.snapshots/); do  sudo rm -rf /home/.snapshots/$i;done
+for i in $(sudo ls /mnt/home/.snapshots/); do  sudo rm -rf /mnt/home/.snapshots/$i;done
+for i in $(sudo ls /.snapshots/); do  sudo rm -rf /.snapshots/$i;done
+
+sudo ls /home/.snapshots/
+sudo ls /mnt/home/.snapshots/
+sudo ls /.snapshots/

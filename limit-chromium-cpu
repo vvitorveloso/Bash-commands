@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# limit-chromium-cpu - Limit CPU usage of Chromium processes
+#
+# This script finds all Chromium processes and limits their CPU usage to 30%.
+
+show_help() {
+    cat << EOF
+limit-chromium-cpu - Limit CPU usage of Chromium processes
+
+This script finds all Chromium processes and limits their CPU usage to 30%.
+
+Usage: sudo $(basename "$0")
+
+Dependencies:
+  - cpulimit (to limit CPU usage)
+
+Examples:
+  sudo $(basename "$0")
+
+WARNING: This script requires root privileges to limit other processes.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before limiting processes
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to limit process CPU usage."
+  exit 1
+fi
+
+for i in $(ps aux | grep chromium| cut -d" " -f 7);do sudo cpulimit -p $i --limit 30 & ;done

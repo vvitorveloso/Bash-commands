@@ -1,0 +1,106 @@
+#!/bin/bash
+#
+# pdf-merge-optimize - Merge and optimize PDF files using Ghostscript
+#
+# This script provides multiple options for merging and optimizing PDF files.
+#
+# Usage: pdf-merge-optimize <input_pdf(s)>
+
+show_help() {
+    cat << EOF
+pdf-merge-optimize - Merge and optimize PDF files using Ghostscript
+
+This script provides multiple options for merging and optimizing PDF files
+using Ghostscript.
+
+Usage: $(basename "$0") [OPTIONS] <input_pdf(s)>
+
+OPTIONS:
+  -m, --merge        Merge PDFs with standard settings (default)
+  -s, --small        Create a smaller file with reduced quality
+  -b, --best         Create optimized file with best minimal settings
+  -o, --output FILE  Specify output filename (default: auto-generated)
+  -h, --help         Show this help message
+
+Dependencies:
+  - ghostscript: Install using 'sudo apt install ghostscript' or equivalent
+
+Examples:
+  $(basename "$0") file1.pdf file2.pdf
+  $(basename "$0") -s *.pdf
+  $(basename "$0") -b -o mybook.pdf *.pdf
+
+EOF
+}
+
+# Default options
+MODE="merge"
+OUTPUT_FILE=""
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -m|--merge)
+            MODE="merge"
+            shift
+            ;;
+        -s|--small)
+            MODE="small"
+            shift
+            ;;
+        -b|--best)
+            MODE="best"
+            shift
+            ;;
+        -o|--output)
+            OUTPUT_FILE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+if [ $# -eq 0 ]; then
+    echo "Error: At least one PDF file required."
+    show_help
+    exit 1
+fi
+
+# Set output filename if not specified
+if [ -z "$OUTPUT_FILE" ]; then
+    case $MODE in
+        "merge")
+            OUTPUT_FILE="merged.pdf"
+            ;;
+        "small")
+            OUTPUT_FILE="merged_small.pdf"
+            ;;
+        "best")
+            OUTPUT_FILE="merged_optimized.pdf"
+            ;;
+    esac
+fi
+
+# Run Ghostscript based on selected mode
+case $MODE in
+    "merge")
+        echo "Merging PDFs with standard settings to $OUTPUT_FILE..."
+        gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile="$OUTPUT_FILE" "$@"
+        ;;
+    "small")
+        echo "Merging PDFs with smaller size (reduced quality) to $OUTPUT_FILE..."
+        gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile="$OUTPUT_FILE" "$@"
+        ;;
+    "best")
+        echo "Merging PDFs with best minimal optimization to $OUTPUT_FILE..."
+        gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/default -dNOPAUSE -dQUIET -dBATCH -dDetectDuplicateImages -dCompressFonts=true -r150 -sOutputFile="$OUTPUT_FILE" "$@"
+        ;;
+esac
+
+echo "Done! Output saved to $OUTPUT_FILE"

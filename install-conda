@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# install-conda - Download and install Miniconda
+#
+# This script downloads the latest Miniconda installer, runs it, and cleans up.
+
+show_help() {
+    cat << EOF
+install-conda - Download and install Miniconda
+
+This script downloads the latest Miniconda installer, runs it, and cleans up.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - wget (to download the installer)
+  - bash (to run the installer)
+
+Configuration:
+  - Downloads from: https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  - Removes installer after installation
+
+Examples:
+  $(basename "$0")
+
+WARNING: The installer will prompt for user input during installation.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check if wget is available
+if ! command -v wget &> /dev/null; then
+    echo "Error: wget is required but not installed."
+    exit 1
+fi
+
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+rm Miniconda3-latest-Linux-x86_64.sh

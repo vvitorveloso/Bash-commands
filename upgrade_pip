@@ -1,2 +1,37 @@
 #!/bin/bash
+#
+# upgrade_pip - Upgrade all user-installed Python packages
+#
+# This script finds all user-installed pip packages and upgrades them.
+
+show_help() {
+    cat << EOF
+upgrade_pip - Upgrade all user-installed Python packages
+
+This script finds all user-installed pip packages and upgrades them.
+
+Usage: $(basename "$0")
+
+Dependencies:
+  - Python pip package manager
+
+Process:
+  1. Lists all user-installed packages with 'pip list --user'
+  2. Extracts package names
+  3. Upgrades each package with 'pip install -U'
+
+Examples:
+  $(basename "$0")
+
+WARNING: This script will upgrade all user-installed packages which may
+         cause compatibility issues with existing projects.
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
 for i in $(pip list --user | cut -d" " -f1);do pip install $i  -U ;done

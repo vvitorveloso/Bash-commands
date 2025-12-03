@@ -1,0 +1,78 @@
+#!/bin/bash
+#
+# rip-dvd - Rip DVD content to video file
+#
+# This script extracts content from a mounted DVD and creates a video file.
+
+show_help() {
+    cat << EOF
+rip-dvd - Rip DVD content to video file
+
+This script extracts content from a mounted DVD and creates a video file.
+It expects the DVD to be mounted on /dev/sr0.
+
+Usage: sudo $(basename "$0")
+
+Dependencies:
+  - ffmpeg
+  - A mounted DVD on /dev/sr0
+
+Configuration:
+  - Mount point: automatically detected from sr0 device
+  - Output file: based on mount directory name
+  - Temp file: /tmp/voblist.txt
+
+WARNING: Requires root privileges to access mounted DVD device.
+
+Examples:
+  sudo $(basename "$0")
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# Check for root privileges before accessing DVD device
+if [[ $EUID -ne 0 ]]; then
+  echo "This script requires root privileges to access DVD device."
+  exit 1
+fi
+
+DIR=$(mount | grep sr0 | cut -d' ' -f 3 )
+NAME=$(echo $DIR| cut -d'/' -f5)
+
+rm /tmp/voblist.txt
+rm $NAME.mp4
+
+for i in $(ls $DIR/VIDEO_TS | grep VOB);do
+
+	echo file \'$DIR\/VIDEO_TS\/$i\' >> /tmp/voblist.txt
+
+done
+
+
+#ffmpeg -safe 0 \
+#-analyzeduration 500M \
+#-probesize 500M \
+#-f concat -i /tmp/voblist.txt  \
+#-c:v libx264 \
+#-c:a aac \
+#-threads 4 -speed 1  \
+#-map 0 -map -0:d -map -0:s -c:s copy \
+#$NAME.mp4
+
+
+ffmpeg -safe 0 \
+-analyzeduration 500M \
+-probesize 500M \
+-f concat -i /tmp/voblist.txt  \
+-c:v copy \
+-c:a copy \
+-c:s copy \
+-threads 4 -speed 1  \
+-map 0  \
+-map -0:d \
+$NAME.vob
