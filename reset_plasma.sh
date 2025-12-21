@@ -1,0 +1,4 @@
+#!/bin/bash
+
+kquitapp6 plasmashell
+plasmashell &

@@ -1,0 +1,39 @@
+#!/bin/bash
+if [ $# -ne 2 ]; then
+    echo "Uso: mv_onedrive <origem> <destino>"
+    echo ""
+    echo "Exemplos:"
+    echo "  mv_onedrive \"EsterMS:Pictures/Familia\" \"EsterIDMS:Imagens/Familia\""
+    echo "  mv_onedrive \"remote1:pasta\" \"remote2:pasta\""
+    echo ""
+    echo "O script usa rclone sync com configurações otimizadas para OneDrive:"
+    echo "  - 16 transferências simultâneas"
+    echo "  - Chunks de 250MB (melhor velocidade)"
+    echo "  - HTTP/1.1 forçado (evita throttle)"
+    echo "  - Timeout de 3min em arquivos travados"
+    echo "  - Retry automático em falhas"
+    exit 1
+fi
+
+ORIGEM="$1"
+DESTINO="$2"
+
+echo "Iniciando sync de:"
+echo "  Origem:  $ORIGEM"
+echo "  Destino: $DESTINO"
+echo ""
+
+rclone sync "$ORIGEM" "$DESTINO" \
+  --progress \
+  --transfers=16 \
+  --checkers=32 \
+  --onedrive-chunk-size=250M \
+  --timeout=3m \
+  --contimeout=60s \
+  --low-level-retries=10 \
+  --retries=3 \
+  --disable-http2 \
+  -v
+
+echo ""
+echo "Sync finalizado!"

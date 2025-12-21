@@ -1,0 +1,2 @@
+#!/bin/bash
+systemctl --user stop aurora && sleep 1 && systemctl --user start aurora && sleep 5 && tail -f /home/ochi/Documentos/AI/Projects/aurora/logs/backend_current.log & sleep 40
